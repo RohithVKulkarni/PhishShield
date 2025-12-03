@@ -25,10 +25,14 @@ export default function EventsPage() {
         return () => clearInterval(interval);
     }, []);
 
-    const filteredEvents = events.filter(event =>
-        event.url.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.status.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const [filterStatus, setFilterStatus] = useState("ALL");
+
+    const filteredEvents = events.filter(event => {
+        const matchesSearch = event.url.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            event.status.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesFilter = filterStatus === "ALL" || event.status === filterStatus;
+        return matchesSearch && matchesFilter;
+    });
 
     return (
         <div className="space-y-6 max-w-[1600px] mx-auto">
@@ -51,10 +55,21 @@ export default function EventsPage() {
                         className="w-full bg-black/40 border border-primary/20 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-primary/50 font-mono text-sm placeholder:text-gray-600"
                     />
                 </div>
-                <button className="flex items-center gap-2 px-6 py-2 bg-primary/10 border border-primary/30 rounded-lg text-primary hover:bg-primary/20 transition-colors font-bold tracking-wider text-sm">
-                    <Filter size={16} />
-                    FILTER
-                </button>
+                <div className="flex gap-2">
+                    {["ALL", "PHISHING", "SAFE"].map((status) => (
+                        <button
+                            key={status}
+                            onClick={() => setFilterStatus(status)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors font-bold tracking-wider text-sm ${filterStatus === status
+                                ? "bg-primary/20 border-primary text-primary shadow-[0_0_10px_rgba(0,242,255,0.2)]"
+                                : "bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10"
+                                }`}
+                        >
+                            <Filter size={14} />
+                            {status}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Table */}
@@ -99,7 +114,15 @@ export default function EventsPage() {
                                 </td>
                                 <td className="p-6 text-sm text-gray-500 font-mono">{event.time}</td>
                                 <td className="p-6">
-                                    <button className="px-4 py-2 rounded bg-primary/10 text-primary border border-primary/30 text-xs font-bold hover:bg-primary/20 transition-all">
+                                    <button
+                                        onClick={() => {
+                                            const reasons = event.reasons && event.reasons.length > 0
+                                                ? event.reasons.join('\n- ')
+                                                : "No specific flags detected.";
+                                            alert(`THREAT ANALYSIS REPORT:\n\nURL: ${event.url}\nScore: ${(event.score * 100).toFixed(1)}%\n\nDETECTION REASONS:\n- ${reasons}`);
+                                        }}
+                                        className="px-4 py-2 rounded bg-primary/10 text-primary border border-primary/30 text-xs font-bold hover:bg-primary/20 transition-all"
+                                    >
                                         REVIEW
                                     </button>
                                 </td>

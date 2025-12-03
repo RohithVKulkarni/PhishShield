@@ -40,7 +40,8 @@ async def score_url(request: ScoreRequest):
         "url": request.url,
         "status": "PHISHING" if prediction["is_phishing"] else "SAFE",
         "time": datetime.now().strftime("%I:%M:%S %p"),
-        "score": prediction["score"]
+        "score": prediction["score"],
+        "reasons": prediction["reasons"]
     }
     recent_scans.insert(0, scan_entry)
     if len(recent_scans) > 50:  # Keep last 50
