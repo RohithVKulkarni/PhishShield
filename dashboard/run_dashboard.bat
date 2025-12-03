@@ -1,0 +1,6 @@
+@echo off
+echo Installing dependencies...
+call npm install
+
+echo Starting Dashboard...
+call npm run dev

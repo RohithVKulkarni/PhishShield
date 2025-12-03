@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+venv/
+.env
+.DS_Store
+
+# Next.js
+.next/
+out/
+
+# ML Models
+backend/app/ml_engine/model.pkl
+
+# IDEs
+.vscode/
+.idea/
