@@ -1,4 +1,4 @@
-from app.ml_engine.feature_extractor import FeatureExtractor
+from ml_engine.feature_extractor import FeatureExtractor
 import pandas as pd
 
 urls = [

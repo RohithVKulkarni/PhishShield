@@ -1,17 +1,48 @@
-from fastapi import APIRouter
-from app.api.v1.endpoints.score import TOTAL_SCANS, THREATS_BLOCKED
-import random
+"""
+PhishShield AI - Statistics Endpoint
+
+This module provides application statistics for the dashboard.
+
+Endpoints:
+    GET /api/v1/stats - Retrieve application statistics
+
+Author: PhishShield Team
+"""
+
+from fastapi import APIRouter, HTTPException
+from app.services import stats_service
 
 router = APIRouter()
 
+
 @router.get("/stats")
 async def get_stats():
-    # Import here to get the latest values if they are updated in the other module
-    from app.api.v1.endpoints.score import TOTAL_SCANS, THREATS_BLOCKED
+    """
+    Retrieve application statistics.
     
-    return {
-        "total_scans": TOTAL_SCANS,
-        "threats_neutralized": THREATS_BLOCKED,
-        "active_nodes": 49, # Mock for now
-        "latency": random.randint(20, 45) # Mock latency
-    }
+    Returns current statistics including:
+    - Total URLs scanned
+    - Total phishing threats blocked
+    - Active detection nodes
+    - System latency
+    
+    Returns:
+        Dictionary containing application statistics
+        
+    Example Response:
+        {
+            "total_scans": 1523,
+            "threats_neutralized": 47,
+            "active_nodes": 49,
+            "latency": 32
+        }
+    """
+    try:
+        # Delegate to stats service
+        return stats_service.get_stats()
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving statistics: {str(e)}"
+        )
