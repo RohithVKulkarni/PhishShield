@@ -1,48 +1,19 @@
-"""
-PhishShield AI - Statistics Endpoint
-
-This module provides application statistics for the dashboard.
-
-Endpoints:
-    GET /api/v1/stats - Retrieve application statistics
-
-Author: PhishShield Team
-"""
-
-from fastapi import APIRouter, HTTPException
-from app.services import stats_service
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from app.db.database import get_db
+from app.db.models import ScanResult
+import random
 
 router = APIRouter()
 
-
 @router.get("/stats")
-async def get_stats():
-    """
-    Retrieve application statistics.
+async def get_stats(db: Session = Depends(get_db)):
+    total_scans = db.query(ScanResult).count()
+    threats_blocked = db.query(ScanResult).filter(ScanResult.is_phishing == True).count()
     
-    Returns current statistics including:
-    - Total URLs scanned
-    - Total phishing threats blocked
-    - Active detection nodes
-    - System latency
-    
-    Returns:
-        Dictionary containing application statistics
-        
-    Example Response:
-        {
-            "total_scans": 1523,
-            "threats_neutralized": 47,
-            "active_nodes": 49,
-            "latency": 32
-        }
-    """
-    try:
-        # Delegate to stats service
-        return stats_service.get_stats()
-        
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error retrieving statistics: {str(e)}"
-        )
+    return {
+        "total_scans": total_scans,
+        "threats_neutralized": threats_blocked,
+        "active_nodes": 49, # Mock for now
+        "latency": random.randint(20, 45) # Mock latency
+    }

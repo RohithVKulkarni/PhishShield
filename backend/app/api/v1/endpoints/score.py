@@ -1,121 +1,55 @@
-"""
-PhishShield AI - URL Scoring Endpoint
-
-This module provides the core phishing detection API endpoint.
-It receives URLs from the browser extension or dashboard, analyzes them
-using the score service, and returns a phishing probability score.
-
-Endpoints:
-    POST /api/v1/score - Analyze a URL for phishing indicators
-    GET /api/v1/score/recent - Retrieve recent scan history
-
-Author: PhishShield Team
-"""
-
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from app.schemas.score import ScoreRequest, ScoreResponse
-from app.services import score_service
+import uuid
+from datetime import datetime
+from sqlalchemy.orm import Session
+from app.db.database import get_db
+from app.db.models import ScanResult
+from app.ml_engine.model import PhishDetector
 
-# Initialize FastAPI router for score-related endpoints
 router = APIRouter()
-
+detector = PhishDetector()
 
 @router.post("/score", response_model=ScoreResponse)
-async def score_url(request: ScoreRequest):
-    """
-    Analyze a URL for phishing indicators using machine learning.
+async def score_url(request: ScoreRequest, db: Session = Depends(get_db)):
+    # Use the ML Engine for prediction
+    prediction = detector.predict(request.url)
     
-    This is the main endpoint used by the browser extension to check URLs
-    in real-time before the user visits them. The request is forwarded to
-    the score service which handles all business logic.
+    result = ScoreResponse(
+        url=request.url,
+        phishing_probability=prediction["score"],
+        is_phishing=prediction["is_phishing"],
+        reasons=prediction["reasons"],
+        request_id=str(uuid.uuid4())
+    )
     
-    Args:
-        request: ScoreRequest containing the URL to analyze
+    # Store in database
+    scan_entry = ScanResult(
+        url=request.url,
+        status="PHISHING" if prediction["is_phishing"] else "SAFE",
+        score=prediction["score"],
+        is_phishing=prediction["is_phishing"],
+        reasons=",".join(prediction["reasons"]) if prediction["reasons"] else "",
+        timestamp=datetime.now()
+    )
+    db.add(scan_entry)
+    db.commit()
+    db.refresh(scan_entry)
         
-    Returns:
-        ScoreResponse with:
-            - url: The analyzed URL
-            - phishing_probability: Score from 0.0 (safe) to 1.0 (phishing)
-            - is_phishing: Boolean verdict (True if score > 0.60)
-            - reasons: List of human-readable detection reasons
-            - request_id: Unique identifier for this scan
-            
-    Example Request:
-        POST /api/v1/score
-        {
-            "url": "http://paypa1-verify.xyz/login"
-        }
-        
-    Example Response:
-        {
-            "url": "http://paypa1-verify.xyz/login",
-            "phishing_probability": 0.85,
-            "is_phishing": true,
-            "reasons": [
-                "Suspicious Top-Level Domain (TLD)",
-                "Sensitive keywords found in URL"
-            ],
-            "request_id": "550e8400-e29b-41d4-a716-446655440000"
-        }
-    """
-    try:
-        # Delegate to score service for business logic
-        result = score_service.scan_url(request.url)
-        
-        # Convert to response model
-        return ScoreResponse(**result)
-        
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error scanning URL: {str(e)}"
-        )
-
+    return result
 
 @router.get("/score/recent")
-async def get_recent_scans():
-    """
-    Retrieve the history of recent URL scans.
+async def get_recent_scans(db: Session = Depends(get_db)):
+    scans = db.query(ScanResult).order_by(ScanResult.timestamp.desc()).limit(50).all()
     
-    Returns the last 50 scanned URLs with their results, displayed in
-    the dashboard for real-time monitoring. Scans are ordered from most
-    recent to oldest.
-    
-    This endpoint is polled by the dashboard every few seconds to show
-    live activity.
-    
-    Returns:
-        List of scan entries, each containing:
-            - url: The scanned URL
-            - status: "SAFE" or "PHISHING"
-            - time: Timestamp of the scan (HH:MM:SS AM/PM)
-            - score: Phishing probability (0.0 - 1.0)
-            - reasons: List of detection reasons
-            
-    Example Response:
-        [
-            {
-                "url": "http://evil-site.xyz",
-                "status": "PHISHING",
-                "time": "02:30:45 PM",
-                "score": 0.92,
-                "reasons": ["Suspicious TLD", "IP address used"]
-            },
-            {
-                "url": "https://google.com",
-                "status": "SAFE",
-                "time": "02:29:12 PM",
-                "score": 0.05,
-                "reasons": []
-            }
-        ]
-    """
-    try:
-        # Delegate to score service
-        return score_service.get_recent_scans()
-        
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error retrieving recent scans: {str(e)}"
-        )
+    # Format for frontend
+    formatted_scans = []
+    for scan in scans:
+        formatted_scans.append({
+            "url": scan.url,
+            "status": scan.status,
+            "time": scan.timestamp.strftime("%I:%M:%S %p"),
+            "score": scan.score,
+            "reasons": scan.reasons.split(",") if scan.reasons else []
+        })
+    return formatted_scans
