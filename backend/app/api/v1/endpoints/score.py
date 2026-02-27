@@ -12,16 +12,18 @@ Endpoints:
 Author: PhishShield Team
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
 from app.schemas.score import ScoreRequest, ScoreResponse
 from app.services import score_service
+from app.core.database import get_db
 
 # Initialize FastAPI router for score-related endpoints
 router = APIRouter()
 
 
 @router.post("/score", response_model=ScoreResponse)
-async def score_url(request: ScoreRequest):
+async def score_url(request: ScoreRequest, db: Session = Depends(get_db)):
     """
     Analyze a URL for phishing indicators using machine learning.
     
@@ -59,8 +61,8 @@ async def score_url(request: ScoreRequest):
         }
     """
     try:
-        # Delegate to score service for business logic
-        result = score_service.scan_url(request.url)
+        # Delegate to score service for business logic (includes whitelist/blacklist check)
+        result = score_service.scan_url(request.url, db=db)
         
         # Convert to response model
         return ScoreResponse(**result)

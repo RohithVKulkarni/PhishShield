@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>PhishShield AI - Settings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --background: #05050a;
+            --surface: #0a0a12;
+            --primary: #00f2ff;
+            --secondary: #ff0055;
+            --success: #00ff9d;
+            --warning: #ffb800;
+        }
+
+        body {
+            width: 700px;
+            min-height: 600px;
+            background: var(--background);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            padding: 24px;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #05050a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(0, 242, 255, 0.1);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 24px;
+            letter-spacing: 2px;
+        }
+
+        .logo-accent {
+            color: var(--primary);
+        }
+
+        .status-badge {
+            padding: 6px 16px;
+            border-radius: 6px;
+            background: rgba(0, 242, 255, 0.1);
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 5px var(--primary);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 600;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            color: #9ca3af;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+        }
+
+        /* Cyber Card */
+        .cyber-card {
+            background: linear-gradient(180deg, rgba(10, 10, 18, 0.8) 0%, rgba(5, 5, 10, 0.9) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 242, 255, 0.1);
+            padding: 24px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .cyber-card:hover {
+            border-color: rgba(0, 242, 255, 0.3);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+        }
+
+        .cyber-card-red {
+            background: linear-gradient(180deg, rgba(10, 10, 18, 0.8) 0%, rgba(5, 5, 10, 0.9) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 0, 85, 0.1);
+            padding: 24px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .cyber-card-red:hover {
+            border-color: rgba(255, 0, 85, 0.3);
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.1);
+        }
+
+        /* Section Title */
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin-bottom: 16px;
+            padding-left: 12px;
+            border-left: 2px solid var(--primary);
+        }
+
+        .section-title-red {
+            color: var(--secondary);
+            border-left-color: var(--secondary);
+        }
+
+        /* Form Elements */
+        label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #9ca3af;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(0, 242, 255, 0.05);
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: rgba(0, 242, 255, 0.15);
+            color: var(--primary);
+            border: 1px solid rgba(0, 242, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: rgba(0, 242, 255, 0.25);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: rgba(255, 0, 85, 0.15);
+            color: var(--secondary);
+            border: 1px solid rgba(255, 0, 85, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: rgba(255, 0, 85, 0.25);
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: rgba(0, 255, 157, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(0, 255, 157, 0.3);
+        }
+
+        .btn-success:hover {
+            background: rgba(0, 255, 157, 0.25);
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* List Container */
+        .list-container {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 16px;
+        }
+
+        .list-item {
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .list-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(0, 242, 255, 0.3);
+        }
+
+        .list-item-pattern {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: white;
+            font-size: 13px;
+        }
+
+        .list-item-note {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .list-item-actions button {
+            padding: 6px 16px;
+            font-size: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: #4b5563;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        /* Status Message */
+        .status-message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-message.success {
+            background: rgba(0, 255, 157, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(0, 255, 157, 0.3);
+        }
+
+        .status-message.error {
+            background: rgba(255, 0, 85, 0.1);
+            color: var(--secondary);
+            border: 1px solid rgba(255, 0, 85, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Import/Export Section */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">
+            PHISH<span class="logo-accent">SHIELD</span>
+        </div>
+        <div class="status-badge">
+            <div class="status-dot"></div>
+            SETTINGS
+        </div>
+    </div>
+
+    <!-- Status Message -->
+    <div id="statusMessage" class="status-message"></div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab active" data-tab="whitelist">WHITELIST</button>
+        <button class="tab" data-tab="blacklist">BLACKLIST</button>
+    </div>
+
+    <!-- Whitelist Tab -->
+    <div id="whitelist" class="tab-content active">
+        <div class="cyber-card">
+            <h3 class="section-title">Add to Whitelist</h3>
+            
+            <label>URL or Domain Pattern</label>
+            <input type="text" id="whitelistPattern" placeholder="example.com or *.example.com">
+
+            <label>Note (Optional)</label>
+            <textarea id="whitelistNote" placeholder="Why is this site trusted?"></textarea>
+
+            <button class="btn btn-success" id="addWhitelist">Add to Whitelist</button>
+        </div>
+
+        <div class="cyber-card">
+            <h3 class="section-title">Whitelisted Sites</h3>
+            <div id="whitelistContainer" class="list-container">
+                <div class="empty-state">NO WHITELISTED SITES YET</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blacklist Tab -->
+    <div id="blacklist" class="tab-content">
+        <div class="cyber-card-red">
+            <h3 class="section-title section-title-red">Add to Blacklist</h3>
+            
+            <label>URL or Domain Pattern</label>
+            <input type="text" id="blacklistPattern" placeholder="evil-site.com or *.phishing.com">
+
+            <label>Note (Optional)</label>
+            <textarea id="blacklistNote" placeholder="Why is this site dangerous?"></textarea>
+
+            <button class="btn btn-danger" id="addBlacklist">Add to Blacklist</button>
+        </div>
+
+        <div class="cyber-card-red">
+            <h3 class="section-title section-title-red">Blacklisted Sites</h3>
+            <div id="blacklistContainer" class="list-container">
+                <div class="empty-state">NO BLACKLISTED SITES YET</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import/Export -->
+    <div class="cyber-card">
+        <h3 class="section-title">Import / Export</h3>
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="exportBtn">Export Lists (JSON)</button>
+            <button class="btn btn-primary" id="importBtn">Import Lists</button>
+        </div>
+        <input type="file" id="importFile" accept=".json,.csv" style="display: none;">
+    </div>
+
+    <script src="options.js"></script>
+</body>
+
+</html>

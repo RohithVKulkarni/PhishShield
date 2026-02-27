@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 
 # Import endpoint routers directly
-from app.api.v1.endpoints import score, feedback, stats
+from app.api.v1.endpoints import score, feedback, stats, user_lists
 
 # Initialize FastAPI application with metadata
 app = FastAPI(
@@ -58,6 +58,16 @@ app.add_middleware(
 app.include_router(score.router, prefix=settings.API_V1_STR, tags=["score"])
 app.include_router(feedback.router, prefix=f"{settings.API_V1_STR}/feedback", tags=["feedback"])
 app.include_router(stats.router, prefix=settings.API_V1_STR, tags=["stats"])
+app.include_router(user_lists.router, prefix=settings.API_V1_STR, tags=["user-lists"])
+
+# ============================================================================
+# Startup Event - Initialize Database
+# ============================================================================
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database tables on application startup"""
+    from app.core.database import init_db
+    init_db()
 
 # ============================================================================
 # Health Check Endpoints

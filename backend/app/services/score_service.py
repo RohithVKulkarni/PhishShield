@@ -12,30 +12,34 @@ This service:
 
 import uuid
 from datetime import datetime
-from typing import Dict
+from typing import Dict, Optional
 
 from app.ml_engine.model import PhishDetector
 from app.services import stats_service, storage_service
+from app.services.user_list_service import UserListService
+from sqlalchemy.orm import Session
 
 # Initialize the ML detector once at module load
 _detector = PhishDetector()
 """Singleton instance of the phishing detection model"""
 
 
-def scan_url(url: str) -> Dict:
+def scan_url(url: str, db: Optional[Session] = None) -> Dict:
     """
     Analyze a URL for phishing indicators using machine learning.
     
     This is the main business logic for URL scanning. It:
-    1. Extracts features from the URL
-    2. Runs ML model prediction
-    3. Calculates phishing probability
-    4. Updates global statistics
-    5. Stores scan in history
-    6. Returns structured result
+    1. Checks whitelist/blacklist (if database available)
+    2. Extracts features from the URL
+    3. Runs ML model prediction
+    4. Calculates phishing probability
+    5. Updates global statistics
+    6. Stores scan in history
+    7. Returns structured result
     
     Args:
         url: The URL to analyze
+        db: Optional database session for whitelist/blacklist checking
         
     Returns:
         Dictionary containing:
@@ -56,6 +60,64 @@ def scan_url(url: str) -> Dict:
             "request_id": "550e8400-e29b-41d4-a716-446655440000"
         }
     """
+    # Check whitelist/blacklist first (if database available)
+    if db is not None:
+        list_match = UserListService.check_url(db, url)
+        if list_match:
+            if list_match["list_type"] == "whitelist":
+                # Whitelisted - immediately return safe
+                request_id = str(uuid.uuid4())
+                stats_service.increment_total_scans()
+                
+                reasons = [f"✓ Whitelisted by user: {list_match['pattern']}"]
+                if list_match.get("note"):
+                    reasons.append(f"Note: {list_match['note']}")
+                
+                scan_entry = {
+                    "url": url,
+                    "status": "SAFE",
+                    "time": datetime.now().strftime("%I:%M:%S %p"),
+                    "score": 0.0,
+                    "reasons": reasons
+                }
+                storage_service.add_scan(scan_entry)
+                
+                return {
+                    "url": url,
+                    "phishing_probability": 0.0,
+                    "is_phishing": False,
+                    "reasons": reasons,
+                    "request_id": request_id
+                }
+            
+            elif list_match["list_type"] == "blacklist":
+                # Blacklisted - immediately return phishing
+                request_id = str(uuid.uuid4())
+                stats_service.increment_total_scans()
+                stats_service.increment_threats_blocked()
+                
+                reasons = [f"⚠ Blacklisted by user: {list_match['pattern']}"]
+                if list_match.get("note"):
+                    reasons.append(f"Note: {list_match['note']}")
+                
+                scan_entry = {
+                    "url": url,
+                    "status": "PHISHING",
+                    "time": datetime.now().strftime("%I:%M:%S %p"),
+                    "score": 1.0,
+                    "reasons": reasons
+                }
+                storage_service.add_scan(scan_entry)
+                
+                return {
+                    "url": url,
+                    "phishing_probability": 1.0,
+                    "is_phishing": True,
+                    "reasons": reasons,
+                    "request_id": request_id
+                }
+    
+    # No list match - proceed with ML prediction
     # Run ML prediction
     prediction = _detector.predict(url)
     

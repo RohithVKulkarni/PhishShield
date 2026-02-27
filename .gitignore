@@ -13,7 +13,10 @@ out/
 
 # ML Models
 backend/app/ml_engine/model.pkl
-
+backend/app/ml_engine/scaler.pkl
+backend/app/ml_engine/feature_importance.csv
+backend/app/ml_engine/dataset.csv
+backend/app/ml_engine/model_metadata.pkl
 # IDEs
 .vscode/
 .idea/
