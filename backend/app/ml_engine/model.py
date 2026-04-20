@@ -12,24 +12,24 @@ class PhishDetector:
         # Load model
         try:
             self.model = joblib.load(model_path)
-            print(f"✓ ML Model loaded from {model_path}")
+            print(f"[PASS] ML Model loaded from {model_path}")
         except Exception as e:
-            print(f"✗ Failed to load ML model: {e}")
+            print(f"[FAIL] Failed to load ML model: {e}")
             self.model = None
         
         # Load scaler
         try:
             self.scaler = joblib.load(scaler_path)
-            print(f"✓ Feature scaler loaded from {scaler_path}")
+            print(f"[PASS] Feature scaler loaded from {scaler_path}")
         except Exception as e:
-            print(f"⚠ Scaler not found, predictions will use unscaled features: {e}")
+            print(f"WARNING: Scaler not found, predictions will use unscaled features: {e}")
             self.scaler = None
         
         # Load model metadata if available
         metadata_path = os.path.join(current_dir, 'model_metadata.pkl')
         try:
             self.metadata = joblib.load(metadata_path)
-            print(f"✓ Model metadata loaded: Accuracy={self.metadata.get('accuracy', 'N/A')}")
+            print(f"[PASS] Model metadata loaded: Accuracy={self.metadata.get('accuracy', 'N/A')}")
         except:
             self.metadata = {}
 
@@ -64,7 +64,7 @@ class PhishDetector:
                 is_phishing = score > 0.60
                 
             except Exception as e:
-                print(f"⚠ Prediction error: {e}")
+                print(f"WARNING: Prediction error: {e}")
                 # Fallback to heuristics if model fails
                 score = self._heuristic_score(features, reasons)
                 is_phishing = score > 0.60
@@ -117,52 +117,52 @@ class PhishDetector:
         """Generate human-readable reasons for the prediction"""
         # Critical security issues
         if features.get('is_ip', 0):
-            reasons.append("⚠ IP address used instead of domain name")
+            reasons.append("WARNING: IP address used instead of domain name")
         
         if features.get('typosquatting', 0):
-            reasons.append("⚠ Domain appears to mimic a well-known brand")
+            reasons.append("WARNING: Domain appears to mimic a well-known brand")
         
         if features.get('homograph_attack', 0):
-            reasons.append("⚠ Contains lookalike characters (homograph attack)")
+            reasons.append("WARNING: Contains lookalike characters (homograph attack)")
         
         # Suspicious patterns
         if features.get('suspicious_tld', 0):
-            reasons.append("⚠ Suspicious top-level domain (TLD)")
+            reasons.append("WARNING: Suspicious top-level domain (TLD)")
         
         if features.get('suspicious_keywords', 0):
-            reasons.append("⚠ Contains sensitive keywords (login, verify, account, etc.)")
+            reasons.append("WARNING: Contains sensitive keywords (login, verify, account, etc.)")
         
         if features.get('brand_keywords', 0):
-            reasons.append("⚠ Brand name appears in suspicious location")
+            reasons.append("WARNING: Brand name appears in suspicious location")
         
         if features.get('https_token', 0):
-            reasons.append("⚠ 'HTTPS' appears in domain name (deceptive)")
+            reasons.append("WARNING: 'HTTPS' appears in domain name (deceptive)")
         
         if features.get('double_slash_redirect', 0):
-            reasons.append("⚠ Double slash redirection detected")
+            reasons.append("WARNING: Double slash redirection detected")
         
         if features.get('has_at_symbol', 0):
-            reasons.append("⚠ '@' symbol in URL (potential credential phishing)")
+            reasons.append("WARNING: '@' symbol in URL (potential credential phishing)")
         
         if features.get('url_shortening', 0):
-            reasons.append("ℹ URL shortening service detected")
+            reasons.append("INFO: URL shortening service detected")
         
         # Statistical anomalies
         if features.get('url_entropy', 0) > 4.5:
-            reasons.append("ℹ High URL randomness detected")
+            reasons.append("INFO: High URL randomness detected")
         
         if features.get('digit_ratio', 0) > 0.3:
-            reasons.append("ℹ Unusually high number of digits in URL")
+            reasons.append("INFO: Unusually high number of digits in URL")
         
         if features.get('subdomain_count', 0) > 3:
-            reasons.append("ℹ Excessive subdomains detected")
+            reasons.append("INFO: Excessive subdomains detected")
         
         if features.get('url_encoded_chars', 0) > 5:
-            reasons.append("ℹ High number of encoded characters")
+            reasons.append("INFO: High number of encoded characters")
         
         # Positive indicators (if no reasons found)
         if not reasons:
             if features.get('is_https', 0):
-                reasons.append("✓ Uses HTTPS protocol")
-            reasons.append("✓ No obvious phishing indicators detected")
+                reasons.append("[PASS] Uses HTTPS protocol")
+            reasons.append("[PASS] No obvious phishing indicators detected")
 

@@ -5,7 +5,7 @@ const BLOCK_PAGE_URL = chrome.runtime.getURL("block.html");
 // Cache for recent URLs to avoid redundant checks
 const urlCache = new Map();
 
-chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
+chrome.webNavigation.onDOMContentLoaded.addListener(async (details) => {
     if (details.frameId !== 0) return; // Only check main frame
 
     const url = details.url;
@@ -23,12 +23,31 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
     }
 
     try {
+        // Extract HTML from the active tab securely
+        let extractedHtml = "";
+        try {
+            const injectionResults = await chrome.scripting.executeScript({
+                target: { tabId: details.tabId },
+                func: () => document.documentElement.outerHTML,
+            });
+            if (injectionResults && injectionResults[0]) {
+                extractedHtml = injectionResults[0].result;
+            }
+        } catch (scriptErr) {
+            console.warn("Failed to extract HTML via scripting:", scriptErr);
+        }
+
+        const payload = { url: url };
+        if (extractedHtml) {
+            payload.html_content = extractedHtml;
+        }
+
         const response = await fetch(API_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ url: url })
+            body: JSON.stringify(payload)
         });
 
         if (!response.ok) {

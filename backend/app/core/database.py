@@ -53,4 +53,4 @@ def init_db():
     """
     from app.core.models import Base  # Import here to avoid circular imports
     Base.metadata.create_all(bind=engine)
-    print("✓ Database tables initialized")
+    print("[PASS] Database tables initialized")

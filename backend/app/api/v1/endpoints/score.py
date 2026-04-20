@@ -62,7 +62,7 @@ async def score_url(request: ScoreRequest, db: Session = Depends(get_db)):
     """
     try:
         # Delegate to score service for business logic (includes whitelist/blacklist check)
-        result = score_service.scan_url(request.url, db=db)
+        result = score_service.scan_url(request.url, html_content=request.html_content, db=db)
         
         # Convert to response model
         return ScoreResponse(**result)
